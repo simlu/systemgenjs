@@ -1,8 +1,9 @@
-import StellaData from "./lib/stella-data";
 import pkg from 'dice-utils';
+import SystemGenerator from "./generator/system-generator";
 const {roll} = pkg;
 
-let gen = new StellaData((rollFormat:string) => {
+let systemGenerator = new SystemGenerator((rollFormat:string) => {
     return roll(rollFormat).total;
 });
-console.log(JSON.stringify(gen.run()));
+
+console.log(JSON.stringify(systemGenerator.generate()));

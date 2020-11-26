@@ -4,8 +4,9 @@ const {roll} = pkg;
 
 test(
     'Check initial star gen', () => {
-        let gen = new StellaData((f) => {
-           throw "Should not be called in this test";
+        let gen = new StellaData();
+        gen.setRoller((f) => {
+            throw "Should not be called in this test";
         });
         let gs = gen.initialStarGen(99, 8);
         expect(gs.spectralClass).toBe("F");
@@ -15,7 +16,8 @@ test(
 
 test(
     'Check star qty average', () => {
-        let gen = new StellaData((rollFormat:string) => {
+        let gen = new StellaData();
+        gen.setRoller((rollFormat:string) => {
             return roll(rollFormat).total;
         });
         let count = 0;

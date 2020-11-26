@@ -58,12 +58,21 @@ export const lumMassTempRads:LumMassTempRad[] = [
     new LumMassTempRad({spectralClass: "M", sizeClass: "III", lum:[470,600,900,1300,1800,2300,2400,2500,2600,2700], mass:[6.2,6.4,6.6,6.8,7.2,7.4,7.8,8.3,8.8,9.3], temp:[3400,3200,3100,3000,2800,2650,2500,2400,2300,2200], rad:[63,80,105,135,180,230,260,290,325,260]}),
 ];
 
-export const abundance = [
-    {min:3, max:9, desc:"Exceptional", mod:2},
-    {min:10, max:12, desc:"High", mod:1},
-    {min:13, max:18, desc:"Normal", mod:0},
-    {min:19, max:21, desc:"Poor", mod:-1},
-    {min:22, max:200, desc:"Depleted", mod:-3}
+export class Abundance {
+    public constructor(init?:Partial<Abundance>) {
+        Object.assign(this, init);
+    }
+    min: number = 0;
+    max: number = 0;
+    desc: string = "";
+    mod: number = 0;
+}
+export const abundances = [
+    new Abundance({min:3, max:9, desc:"Exceptional", mod:2}),
+    new Abundance({min:10, max:12, desc:"High", mod:1}),
+    new Abundance({min:13, max:18, desc:"Normal", mod:0}),
+    new Abundance({min:19, max:21, desc:"Poor", mod:-1}),
+    new Abundance({min:22, max:200, desc:"Depleted", mod:-3})
 ]
 
 export const whiteDwarf = [
@@ -126,4 +135,11 @@ export const sepTypes = {
     SEPERATED: 8,
     DISTANT: 9,
     EXTREME: 10
+}
+
+export const orbitTypes = {
+    STAR: 0,
+    ORBIT: 1,
+    PLANET: 2,
+    MOON: 3
 }

@@ -1,34 +1,34 @@
 import {
-    abundance,
+    abundances,
     lumMassTempRads,
     starAges,
     starMaps,
     StarMap,
     LumMassTempRad,
-    whiteDwarf, brownDwarf, sepTypes
-} from "../tables/stella-data-tables";
-import Star from "../components/star";
-import System from "../components/system";
+    whiteDwarf, brownDwarf, sepTypes, orbitTypes, Abundance, StarAge
+} from "../../tables/stella-data-tables";
+import Star from "../../components/star";
+import System from "../../components/system";
+import Orbit from "../../components/orbit";
+import IGeneratorPart from "../../interfaces/generator-part";
 
-export default class StellaData {
+export default class StellaData implements IGeneratorPart{
     roller: (rollFormat: string) => number;
-    stars: Star[] = [];
-    constructor(callback: (rollFormat: string) => number) {
+    setRoller(callback: (rollFormat: string) => number) {
         this.roller = callback;
     }
-    run():System {
+    run(system:System):System {
         let primaryStarMap:StarMap = this.initialStarGen(this.roller("d100"),this.roller("d10"));
-        let qty:number = 5;//this.starQty();
+        let qty:number = this.starQty();
         let maps:StarMap[] = this.extraStars(primaryStarMap, qty);
         maps = this.calculateLumMassTempRad(maps);
         maps = this.recalculateGiantAndSubGiant(maps);
         maps = this.recalculateDwarfs(maps);
-        this.stars = this.convertStarMapsToStars(maps);
-        let abundance = this.findAbundance(this.stars[0].starAge);
-        let system = new System();
-        system.age = this.stars[0].starAge;
-        //system.abundance = abundance.desc;
-        system.stars = this.organiseStars();
+        let stars: Orbit<any>[] = [];
+        stars = this.convertStarMapsToStarOrbits(maps);
+        system.age = stars[0].item.starAge;
+        system.abundance = this.findAbundance(stars[0].item.starAge);
+        system.primary = stars;
         return system;
     }
     initialStarGen(d100:number, d10:number):StarMap    {
@@ -97,7 +97,7 @@ export default class StellaData {
     starQty(): number {
         let stars = 1;
         let rl = this.roller("d10");
-        while (rl > 7) {
+        while (rl > 7 && stars <=6) {
             stars++;
             rl = this.roller("d10");
         }
@@ -237,123 +237,20 @@ export default class StellaData {
 
         return stars;
     }
-    convertStarMapsToStars(maps: StarMap[]): Star[] {
+    convertStarMapsToStarOrbits(maps: StarMap[]): Orbit<any>[] {
         let stars = [];
         for(let i = 0; i<maps.length; i++ ) {
-            let star = new Star();
-            star.map(maps[i]);
-            stars.push(star);
+            stars.push(new Orbit<Star>((new Star()).map(maps[i]), orbitTypes.STAR));
         }
         return stars;
     }
-    organiseStars() {
-        let starKeys = Array.from(this.stars.keys());
-        let starsChunked = starKeys.reduce((all,one,i) => {
-                const ch = Math.floor(i/2);
-                all[ch] = [].concat((all[ch]||[]),one);
-                return all
-            }, []);
-        let parent = [];
-        let chunkSep = 1;
-        let min  = 1;
-        let max     = 10;
-        starsChunked.forEach((val, i) => {
-            let result = this.handleChunk(val, parent, min, max);
-            parent = result.newParent;
-            chunkSep = result.chunkSep;
-            min = (chunkSep <= sepTypes.SEPERATED) ? chunkSep : 1;
-            max = (chunkSep >= sepTypes.SEPERATED) ? chunkSep : 10;
-        });
-        return this.stars;
-    };
-    handleChunk(chunk, parent, min, max) {
-        let newParent = parent;
-        let chunkSep = this.calcSep(min, max);
-        let chunkRule = (chunkSep < sepTypes.SEPERATED);
-        parent = Array.isArray(parent) ? parent : [parent];
-        newParent = Array.isArray(chunk[0]) ? chunk[0] : [chunk[0]];
-        let A = chunk[0];
-        this.stars[A].starId = A;
-        if (parent.length !== 0) {
-            this.stars[A].sep = chunkSep;
-            this.stars[A].ecc = this.calculateEccentricity();
-            this.stars[A].parentIds = parent;
-            chunkSep = chunkRule ? this.calcSep(chunkSep, 10) : this.calcSep(1, chunkSep);
-        }
-        if (chunk[1] !== undefined) {
-            let B = chunk[1];
-            this.stars[B].starId = B;
-            this.stars[B].parentIds = newParent;
-            this.stars[B].sep = chunkSep;
-            this.stars[B].ecc = this.calculateEccentricity();
-        }
-        if (parent.length === 0) {
-            chunkSep = chunkRule ? this.calcSep(chunkSep, 10) : this.calcSep(1, chunkSep);
-        }
-
-        if (parent.length !== 0 && newParent != parent) {
-            let roll = this.roller("d10");
-            newParent = (roll <= 3) ? parent : (roll <= 6) ? newParent : parent.concat(newParent);
-        }
-
-        return {newParent:newParent, chunkSep:chunkSep};
-    }
-    calcSep(min, max) {
-        let roll = Math.floor(Math.random() * (max - min) + min);
-
-        let result = sepTypes.VERY_CLOSE;
-        switch(roll) {
-            case 1:
-            case 2:
-            case 3:
-                result = sepTypes.VERY_CLOSE;
-                break;
-            case 4:
-            case 5:
-            case 6:
-                result = sepTypes.CLOSE;
-                break;
-            case 7:
-            case 8:
-                result = sepTypes.SEPERATED;
-                break;
-            case 9:
-                result = sepTypes.DISTANT;
-                break;
-            default:
-                result = sepTypes.EXTREME;
-                break;
-        }
-
-        return result;
-    };
-    calculateEccentricity() {
-        let d10A = this.roller("d10");
-        let d10B = this.roller("d10");
-        let ecc = 0;
-        if (d10A<=2) {
-            ecc = 0.01 * d10B;
-        } else if (d10A<=4) {
-            ecc = 0.1 + (0.01 * d10B);
-        } else if (d10A<=6) {
-            ecc = 0.2 + (0.01 * d10B);
-        } else if (d10A<=8) {
-            ecc = 0.3 + (0.01 * d10B);
-        } else if (d10A===9) {
-            ecc = 0.4 + (0.01 * d10B);
-        } else if (d10A===10) {
-            ecc = 0.5 + (0.01 * d10B);
-        }
-
-        return ecc;
-    }
-    findAbundance(mod: number) {
+    findAbundance(mod: number): Abundance {
         let roll = this.roller('2d10') + mod;
-        return [...abundance].find((value, index) => {
+        return [...abundances].find((value, index) => {
             return value.min <= roll && value.max >= roll;
         });
     }
-    findStarAge(primary: StarMap, ranking: number) {
+    findStarAge(primary: StarMap, ranking: number): StarAge {
         return [...starAges].find((value, index) => {
             return value.spectralClass === primary.spectralClass && value.minRanking <= ranking && value.maxRanking >= ranking;
         });
