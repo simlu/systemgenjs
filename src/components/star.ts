@@ -1,4 +1,7 @@
-export default class Star {
+import BaseOrbitsType from "./base-orbits-type";
+
+export default class Star extends BaseOrbitsType<Star> {
+    description:string = "Star";
     public starAge: number = 0;
     public spectralClass: string = "";
     public spectralRanking: number = 0;
@@ -8,13 +11,8 @@ export default class Star {
     public mass:number = 0;
     public temp:number = 0;
     public rad:number = 0;
-    map(object):Star {
-        for (let key in object) {
-            if (this.hasOwnProperty(key)) {
-                Reflect.set(this, key, object[key]);
-            }
-        }
 
-        return this;
+    getType(): string {
+        return "Star";
     }
 }
