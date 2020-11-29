@@ -132,14 +132,7 @@ export const sepTypes = {
     NA: -1,
     VERY_CLOSE: 3,
     CLOSE: 6,
-    SEPERATED: 8,
+    SEPARATED: 8,
     DISTANT: 9,
     EXTREME: 10
-}
-
-export const orbitTypes = {
-    STAR: 0,
-    ORBIT: 1,
-    PLANET: 2,
-    MOON: 3
 }

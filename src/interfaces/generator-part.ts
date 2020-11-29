@@ -1,6 +1,6 @@
 import System from "../components/system";
 
 export default interface IGeneratorPart {
-    setRoller(callback: (rollFormat: string) => number):void;
+    setRoller(callback: (rollFormat: string) => number):IGeneratorPart;
     run(system: System): System;
 }
