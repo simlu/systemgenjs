@@ -11,7 +11,13 @@ import BaseOrbitsType from "../../components/base-orbits-type";
 import Star from "../../components/star";
 import BaseOrbitsStar from "../../components/base-orbits-star";
 import Interloper from "../../components/interloper";
+import CapturedBody from "../../components/captured-body";
+import BasePlanet from "../../components/base-planet";
 
+/**
+ * @todo removing null orbits not working
+ * @todo planet with no type
+ */
 export default class PlanetaryOrbits implements IGeneratorPart {
     roller: (rollFormat: string) => number;
 
@@ -74,12 +80,13 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         } else if (type === "JunkRing") {
         } else {
             let planet: Planet = <Planet>orbitItem;
+            let captured = (planet.planetSubType === "Captured Body") ? true: false;
             if (["Chunk", "Terrestrial", "Gas Giant"].indexOf(planet.planetType) > -1) {
                 type = planet.planetType;
-                params = this.standardPlanetaryParams(primary.mass, primary.starAge, planet.meanSeparation, type, this.roller("d10"), zone, abundance.mod);
+                params = this.standardPlanetaryParams(type, primary, planet, this.roller("d10"), abundance.mod);
             } else if (planet.planetType === "Superjovian") {
                 type = planet.planetType;
-                params = this.standardJovianParams(primary.mass, primary.starAge, planet.meanSeparation, type, this.roller("d10"), zone, age);
+                params = this.standardJovianParams(type, primary, planet, this.roller("d10"), abundance.mod);
             }
             orbitItem.map(params);
         }
@@ -87,7 +94,9 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         return orbitItem
     }
 
-    standardJovianParams(primaryMass:number, primaryAge:number, distance:number, type: string, roll: number, zone: string, mod: number): PlanetParams {
+    standardJovianParams(type:string, primary: Star, planet:BasePlanet<any>, roll:number, mod:number): PlanetParams {
+        let zone = planet.orbitZone;
+        let captured = (planet.planetSubType === "Captured Body") ? true: false;
         let output = new PlanetParams();
         if (roll <= 4) {
             output.mass = 500 + this.roller("d10") * 50;
@@ -102,19 +111,25 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         output.density = (259694072000 * output.mass) / Math.pow(output.radius, 3);
         output.gravity = output.mass / Math.pow((output.radius / 6380), 2);
         output.escape = Math.pow((19600 * output.gravity * output.radius), 0.5) / 11200;
-        let yearMass = primaryMass;
-        if ((primaryMass/output.mass)<1.1) {
-            yearMass = primaryMass + output.mass;
+        let yearMass = primary.mass;
+        if ((primary.mass/output.mass)<1.1) {
+            yearMass = primary.mass + output.mass;
         }
-        output.orbitalPeriod = Math.pow((Math.pow(distance,3) / yearMass), 0.5);
-        output.tidalForce = (primaryMass * 26640000) / Math.pow((distance * 400),3);
+        output.orbitalPeriod = Math.pow((Math.pow(planet.meanSeparation,3) / yearMass), 0.5);
+        output.tidalForce = (primary.mass * 26640000) / Math.pow((planet.meanSeparation * 400),3);
         let d = this.roller("d10");
-        output.tidalLock = (0.83 + d * 0.03) * output.tidalForce * (primaryAge/6.6);
-
+        output.tidalLock = (0.83 + (d * 0.03)) * output.tidalForce * (primary.starAge/6.6);
+        output.orbitalEccentricity = this.getObitalEccentricity(captured);
+        output.closestSeparation = planet.meanSeparation * ( 1 - output.orbitalEccentricity );
+        output.furthestSeparation = planet.meanSeparation * ( 1 + output.orbitalEccentricity );
+        output.planetTilt = this.getAxialTilt();
+        output.solarDay = this.calculateSolarDay(output, planet, primary.starAge);
         return output;
     }
 
-    standardPlanetaryParams(primaryMass:number, primaryAge:number, distance:number, type: string, roll: number, zone: string, mod: number): PlanetParams {
+    standardPlanetaryParams(type:string, primary: Star, planet:BasePlanet<any>, roll:number, mod:number): PlanetParams {
+        let zone = planet.orbitZone;
+        let captured = (planet.planetSubType === "Captured Body") ? true: false;
         let output = new PlanetParams();
         roll = (roll === 1) ? roll : roll + mod;
         roll = (zone === "Inner Zone") ? roll + 1 : roll;
@@ -125,14 +140,124 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         output.mass = Math.pow((output.radius / 6380), 3) * output.density;
         output.gravity = output.mass / Math.pow((output.radius / 6380), 2);
         output.escape = Math.pow((19600 * output.gravity * output.radius), 0.5) / 11200;
-        let yearMass = primaryMass;
-        if ((primaryMass/output.mass)<1.1) {
-            yearMass = primaryMass + output.mass;
+        let yearMass = primary.mass;
+        if ((primary.mass/output.mass)<1.1) {
+            yearMass = primary.mass + output.mass;
         }
-        output.orbitalPeriod = Math.pow((Math.pow(distance,3) / yearMass), 0.5);
-        output.tidalForce = (primaryMass * 26640000) / Math.pow((distance * 400),3);
+        output.orbitalPeriod = Math.pow((Math.pow(planet.meanSeparation,3) / yearMass), 0.5);
+        output.tidalForce = (primary.mass * 26640000) / Math.pow((planet.meanSeparation * 400),3);
         let d = this.roller("d10");
-        output.tidalLock = (0.83 + d * 0.03) * output.tidalForce * (primaryAge/6.6);
+        output.tidalLock = (0.83 + (d * 0.03)) * output.tidalForce * (primary.starAge/6.6);
+        output.orbitalEccentricity = this.getObitalEccentricity(captured);
+        output.closestSeparation = planet.meanSeparation * ( 1 - output.orbitalEccentricity );
+        output.furthestSeparation = planet.meanSeparation * ( 1 + output.orbitalEccentricity );
+        output.planetTilt = this.getAxialTilt();
+        output.solarDay = this.calculateSolarDay(output, planet, primary.starAge);
+        return output;
+    }
+
+    calculateSolarDay(params:PlanetParams, planet:BasePlanet<any>, starAge:number):number {
+        let output: number = -1;
+        if ( params.tidalLock < 1) {
+            output = 0;
+            let roll = this.roller("d10");
+            roll += Math.floor((params.tidalForce * starAge));
+            switch (true) {
+                case (roll <= 5):
+                    if (planet.planetType === "Chunk") {
+                        output = (this.roller("d10") * 2);
+                    } else if (planet.planetType !== "Gas Giant" && planet.planetType !== "Superjovian") {
+                        output = 10 + (this.roller("d10") * 2);
+                    } else {
+                        output = 6 + (this.roller("d10") / 2);
+                    }
+                    break;
+                case (roll <= 7):
+                    if (planet.planetType === "Chunk") {
+                        output = this.roller("d10") * 24;
+                    } else if (planet.planetType !== "Gas Giant" && planet.planetType !== "Superjovian") {
+                        output = 30 + this.roller("d100");
+                    } else {
+                        output = 11 + (this.roller("d10") / 2);
+                    }
+                    break;
+                case (roll <= 9):
+                    if (planet.planetType === "Chunk") {
+                        output = this.roller("d100") * 24;
+                    } else if (planet.planetType !== "Gas Giant" && planet.planetType !== "Superjovian") {
+                        output = this.roller("d100") * 2 * 24;
+                    } else {
+                        output = 16 + this.roller("d10");
+                    }
+                    break;
+                case (roll >= 10):
+                    if (planet.planetType === "Gas Giant" || planet.planetType === "Superjovian") {
+                        output = (26 + this.roller("d10")) * 24;
+                    } else {
+                        output = -1;
+                    }
+                    break;
+            }
+            if (output !== -1) {
+                if (params.tidalLock >= 1) {
+                    output = -1;
+                } else {
+                    let mod = (planet.mass >= 4) ? -2 : 0;
+                    mod += (planet.planetType === "Gas Giant" && planet.mass <= 50) ? 2 : 0;
+                    output = output * (1 + (mod * 0.1));
+                }
+            } else {
+                if (params.tidalLock < 1) {
+                    output = (100 + this.roller("D1000")) * 24;
+                }
+            }
+        }
+
+        return output;
+    }
+
+    getAxialTilt(): number {
+        let roll = this.roller("d10");
+        let output = 0;
+        switch(true) {
+            case (roll <= 2):
+                output = this.roller("d10");
+                break;
+            case (roll <= 4):
+                output = 10 + this.roller("d10");
+                break;
+            case (roll <= 6):
+                output = 20 + this.roller("d10");
+                break;
+            case (roll <= 8):
+                output = 30 + this.roller("d10");
+                break;
+            case (roll >= 9):
+                output = 40 + (this.roller("d100") * 1.4);
+                break;
+        }
+
+        return output;
+    }
+
+    getObitalEccentricity(captured:boolean): number {
+        let roll = this.roller("d10");
+        roll += (captured) ? 3 : 0;
+        let output = 0;
+        switch(true) {
+            case (roll <= 5):
+                output = 0.005 * this.roller("d10");
+                break;
+            case (roll <= 7):
+                output = 0.05 + (0.01 * this.roller("d10"));
+                break;
+            case (roll <= 9):
+                output = 0.15 + (0.01 * this.roller("d10"));
+                break;
+            case (roll >= 10):
+                output = 0.25 + (0.04 * this.roller("d10"));
+                break;
+        }
 
         return output;
     }
@@ -188,6 +313,12 @@ export default class PlanetaryOrbits implements IGeneratorPart {
             post.planetSubType = pre.planetType;
             post.meanSeparation = pre.meanSeparation;
             post.orbitZone = pre.orbitZone;
+        } else if (pre.planetType === "Captured Body") {
+            post = new CapturedBody();
+            post.planetType = pre.planetSubType;
+            post.planetSubType = pre.planetType;
+            post.meanSeparation = pre.meanSeparation;
+            post.orbitZone = pre.orbitZone;
         } else if (pre.planetType === "Empty Orbit") {
             post = null
         } else {
@@ -227,7 +358,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
 
     generateBasicOrbits(star: Star, abundance: Abundance): { distance: number, type: string }[] {
         // work out modifier based on star type
-        let mod = 0;
+        let mod = this.roller("d10");
         if (star.spectralClass === "K" && star.sizeClass === "V" && star.spectralRanking >= 5 && star.spectralRanking <= 9) {
             mod += 1;
         } else if (star.spectralClass === "M" && star.sizeClass === "V" && star.spectralRanking >= 0 && star.spectralRanking <= 4) {
@@ -263,11 +394,13 @@ export default class PlanetaryOrbits implements IGeneratorPart {
 
         //generate distance, class and type basics
         let planetArray = [];
-        let tot = (0.05 * Math.pow(star.mass, 2) * this.roller("d10"));
+        let tot = 0.05 * Math.pow(star.mass, 2) * this.roller("d10");
         for (let j = 0; j < planets; j++) {
-            tot = (tot * (1.1 + (this.roller("d10") * 0.1)));
+            tot *= 1.1 + (this.roller("d10") * 0.1);
+            tot += 0.1;
             planetArray.push({distance: tot, type: ""});
         }
+
 
         let limit = 0;
         // Remove orbits due to white dwarf
@@ -326,22 +459,24 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         // if all orbits are removed its likely they have rubbish left behind.
         if (planetArray.length === 0 && !ignoreZeroLength) {
             let mess = this.roller("d5");
-            tot = this.roller("d10") * this.roller("d10");
             for (let k = 0; k < mess; k++) {
                 let type = this.roller("d10");
                 switch (true) {
                     case (type <= 3):
+                        tot = this.roller("d10") * this.roller("d10");
                         planetArray.push({distance: tot, type: "Chunk"});
                         break;
                     case (type === 4):
+                        tot = this.roller("d10");
                         planetArray.push({distance: tot, type: "Captured Body"});
                         break;
                     case (type <= 7):
+                        tot = this.roller("d10");
                         planetArray.push({distance: tot, type: "Ring"});
                         break;
                 }
-                tot = tot + (0.05 * Math.pow(star.mass, 2) * this.roller("d10")) + 0.1;
             }
+            planetArray = planetArray.sort((a, b) => (a.distance > b.distance) ? 1 : -1)
         }
 
         return planetArray;

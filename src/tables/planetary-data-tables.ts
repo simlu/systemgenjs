@@ -129,6 +129,11 @@ export const planetaryDensity = {
 }
 
 export class PlanetParams {
+    solarDay: number = 0;
+    planetTilt: number = 0;
+    orbitalEccentricity: number = 0;
+    closestSeparation: number = 0;
+    furthestSeparation: number = 0;
     orbitalPeriod: number = 0;
     tidalForce: number = 0;
     tidalLock: number = 0;
