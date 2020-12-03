@@ -42,7 +42,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
             }
         }
 
-        this.addOrbits(primary, star, abundance);
+        star = this.addOrbits(primary, star, abundance);
         return star;
     }
 
@@ -80,7 +80,6 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         } else if (type === "JunkRing") {
         } else {
             let planet: Planet = <Planet>orbitItem;
-            let captured = (planet.planetSubType === "Captured Body") ? true: false;
             if (["Chunk", "Terrestrial", "Gas Giant"].indexOf(planet.planetType) > -1) {
                 type = planet.planetType;
                 params = this.standardPlanetaryParams(type, primary, planet, this.roller("d10"), abundance.mod);
@@ -130,10 +129,12 @@ export default class PlanetaryOrbits implements IGeneratorPart {
     standardPlanetaryParams(type:string, primary: Star, planet:BasePlanet<any>, roll:number, mod:number): PlanetParams {
         let zone = planet.orbitZone;
         let captured = (planet.planetSubType === "Captured Body") ? true: false;
+        let trojan = (planet.planetSubType === "Trojan") ? true: false;
         let output = new PlanetParams();
         roll = (roll === 1) ? roll : roll + mod;
         roll = (zone === "Inner Zone") ? roll + 1 : roll;
         roll = (zone === "Life Zone") ? roll + 1 : roll;
+        roll = trojan ? roll + 2 : roll;
         roll = (roll < 1) ? 1 : (roll > 10) ? 10 : roll;
         output.radius = planetaryRadius[type](roll, this.roller("d10"));
         output.density = planetaryDensity[zone][type](this.roller("d10"));
