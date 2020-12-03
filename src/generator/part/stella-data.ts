@@ -245,7 +245,7 @@ export default class StellaData implements IGeneratorPart {
     convertStarMapsToStars(maps: StarMap[]): Star[] {
         let stars = [];
         for (let i = 0; i < maps.length; i++) {
-            stars.push(new Star().update(maps[i]));
+            stars.push(new Star().import(maps[i]));
         }
         return stars;
     }
