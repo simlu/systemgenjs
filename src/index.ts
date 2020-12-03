@@ -7,7 +7,7 @@ const rnd = new Srand(); // Initiate with random seed
 
 console.log(rnd.seed()); // 1836504610 Read the seed
 
-const randomRangeGenerator = (min:number, max:number) => {
+const randomRangeGenerator = (min: number, max: number) => {
     return rnd.intInRange(min, max);
 };
 let systemGenerator = new SystemGenerator(randomRangeGenerator);

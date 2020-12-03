@@ -5,7 +5,7 @@ import {getPathsFromValue} from "../../system-gen-utils";
 import Star from "../../components/star";
 
 export default class MultipleStars implements IGeneratorPart {
-    rr: (min:number, max: number) => number;
+    rr: (min: number, max: number) => number;
 
     run(system: System): System {
         system = this.setOrbitPosition(system);
@@ -41,7 +41,7 @@ export default class MultipleStars implements IGeneratorPart {
 
     getMass(orbit: Star): number {
         let mass = orbit.mass;
-        orbit.orbits.forEach((child, i) => {
+        orbit.orbits.forEach((child) => {
             if (child instanceof Star) {
                 mass += this.getMass(child);
             }
@@ -64,8 +64,10 @@ export default class MultipleStars implements IGeneratorPart {
                 break;
             case 4:
                 system = this.setQuadrupleOrbit(system, primaries);
+                break;
             default:
                 system.orbits = primaries;//restore back as we don't deal with this many
+                break;
         }
 
         return system;
@@ -92,7 +94,7 @@ export default class MultipleStars implements IGeneratorPart {
         system = this.setDoubleOrbit(system, primaries);
         let sep = this.calcSep();
         let slot = 0;
-        let roll = this.rr(1,10);
+        let roll = this.rr(1, 10);
         primaries[2] = this.fillInSepValues(primaries[2], sep);
         if (system.orbits.length > 1) {
             if (sep < sepTypes.SEPARATED) {
@@ -118,7 +120,7 @@ export default class MultipleStars implements IGeneratorPart {
     setQuadrupleOrbit(system: System, primaries: Star[]): System {
         system = this.setTripleOrbit(system, primaries);
         let sep = this.calcSep();
-        let roll = this.rr(1,10);
+        let roll = this.rr(1, 10);
         let slot = (roll <= 4) ? 0 : (roll <= 7) ? 1 : 2;
         if (system.orbits.length === 3) {
             sep = this.calcSep(1, 6);
@@ -150,10 +152,10 @@ export default class MultipleStars implements IGeneratorPart {
         return system;
     }
 
-    calcSep(min:number = 1, max:number=10) {
+    calcSep(min: number = 1, max: number = 10) {
         let roll = this.rr(min, max);
 
-        let result = sepTypes.VERY_CLOSE;
+        let result;
         switch (roll) {
             case 3:
                 result = sepTypes.VERY_CLOSE;
@@ -215,9 +217,9 @@ export default class MultipleStars implements IGeneratorPart {
     }
 
     calculateEccentricity(mod: number) {
-        let d10A = this.rr(1,10);
+        let d10A = this.rr(1, 10);
         d10A = ((d10A + mod) < 1 || (d10A + mod) > 10) ? d10A : d10A + mod;
-        let d10B = this.rr(1,10);
+        let d10B = this.rr(1, 10);
         let ecc = 0;
         if (d10A <= 2) {
             ecc = 0.01 * d10B;
@@ -236,7 +238,7 @@ export default class MultipleStars implements IGeneratorPart {
         return ecc;
     }
 
-    setRandomRange(callback: (min:number, max: number) => number): MultipleStars {
+    setRandomRange(callback: (min: number, max: number) => number): MultipleStars {
         this.rr = callback;
         return this;
     }

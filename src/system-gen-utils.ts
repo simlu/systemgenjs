@@ -14,10 +14,10 @@ export const stringToPath = (path) => {
     let output = [];
 
     // Split to an array with dot notation
-    path.split('.').forEach(function (item, index) {
+    path.split('.').forEach(function (item) {
 
         // Split to an array with bracket notation
-        item.split(/\[([^}]+)\]/g).forEach(function (key) {
+        item.split(/\[([^}]+)]/g).forEach(function (key) {
 
             // Push to the new array
             if (key.length > 0) {
@@ -54,16 +54,18 @@ export const getValueFromPath = (obj, path, def) => {
 
 };
 
-export function getPathsFromValue(data, filter: string, remove: string):string[] {
+export function getPathsFromValue(data, filter: string, remove: string): string[] {
     const findKeys = (haystack) => objectScan([filter], {
         rtn: 'key',
         abort: false,
-        filterFn: () => { return true;}
+        filterFn: () => {
+            return true;
+        }
     })(haystack);
     let result = findKeys(data);
     let paths = [];
-    let removal = new RegExp("," + remove,"g");
-    result.forEach((val, i) => {
+    let removal = new RegExp("," + remove, "g");
+    result.forEach((val) => {
         let path = val.toString().replace(removal, '').replace(/,/g, '.').replace(/\.$/, '');
         paths.push(path);
     });
