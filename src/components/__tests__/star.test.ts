@@ -18,6 +18,6 @@ test('Stella Star - star should map correctly', () => {
     };
 
     expect(star.starAge).toBe(0);
-    star.update(obj);
+    star.import(obj);
     expect(obj.spectralClass).toBe(star.spectralClass);
 });

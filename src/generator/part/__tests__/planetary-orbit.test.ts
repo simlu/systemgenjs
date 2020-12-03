@@ -11,10 +11,11 @@ test(
     'Check initial star gen', () => {
         Object.entries(planetaryTypes).forEach((target) => {
             for (let roll = 1; roll <= 100; roll++) {
-                let planetType = planetaryTypes[target[0]].find((val) => {
+                let orbitType = planetaryTypes[target[0]].find((val) => {
                     return (val.min <= roll && val.max >= roll);
                 });
-                expect(planetType.max).toBeDefined();
+                console.log(target[0], orbitType);
+                expect(orbitType.max).toBeDefined();
             }
         });
     },
@@ -27,63 +28,55 @@ test(
         let i = 1;
         ["Asteroid Belt", "JunkRing", "Interloper", "Trojan", "Double Planet", "Captured Body", "Planet"].forEach((value) => {
             let expected = {
-                planetType: value,
+                orbitType: value,
                 subType: "",
                 gotType: "Planet",
                 meanSeparation: i,
                 orbitZone: "Test Zone " + i
             }
-            pre.planetType = expected.planetType;
+            pre.orbitType = expected.orbitType;
             pre.meanSeparation = expected.meanSeparation;
             pre.orbitZone = expected.orbitZone;
             i++;
-            if (pre.planetType === "Asteroid Belt") {
-                post = new AsteroidBelt();
-                post.meanSeparation = pre.meanSeparation;
-                post.orbitZone = pre.orbitZone;
-                expected.planetType = undefined;
-                expected.subType = undefined;
+            if (pre.orbitType === "Asteroid Belt") {
+                post = new AsteroidBelt().import(pre);
                 expected.gotType = "AsteroidBelt";
-            } else if (pre.planetType === "Ring") {
-                post = new JunkRing();
-                post.meanSeparation = pre.meanSeparation;
-                post.orbitZone = pre.orbitZone;
-                expected.planetType = undefined;
-                expected.subType = undefined;
+            } else if (pre.orbitType === "Ring") {
+                post = new JunkRing().import(pre);
                 expected.gotType = "JunkRing";
-            } else if (pre.planetType === "Interloper") {
-                post = new Interloper().update(pre);
+            } else if (pre.orbitType === "Interloper") {
+                post = new Interloper().import(pre);
                 expected.gotType = "Interloper";
                 expected.subType = "Interloper";
-                expected.planetType = "";
-                post.planetType = pre.planetSubType;
-                post.planetSubType = pre.planetType;
-            } else if (pre.planetType === "Trojan") {
-                post = new Trojan().update(pre);
-                post.planetType = pre.planetSubType;
-                post.planetSubType = pre.planetType;
+                expected.orbitType = "";
+                post.orbitType = pre.orbitSubType;
+                post.orbitSubType = pre.orbitType;
+            } else if (pre.orbitType === "Trojan") {
+                post = new Trojan().import(pre);
+                post.orbitType = pre.orbitSubType;
+                post.orbitSubType = pre.orbitType;
                 expected.gotType = "Trojan";
                 expected.subType = "Trojan";
-                expected.planetType = "";
-            } else if (pre.planetType === "Double Planet") {
-                post = new DoublePlanet().update(pre);
-                post.planetType = pre.planetSubType;
-                post.planetSubType = pre.planetType;
+                expected.orbitType = "";
+            } else if (pre.orbitType === "Double Planet") {
+                post = new DoublePlanet().import(pre);
+                post.orbitType = pre.orbitSubType;
+                post.orbitSubType = pre.orbitType;
                 expected.gotType = "DoublePlanet";
                 expected.subType = "Double Planet";
-                expected.planetType = "";
-            } else if (pre.planetType === "Captured Body") {
-                post = new CapturedBody().update(pre);
-                post.planetType = pre.planetSubType;
-                post.planetSubType = pre.planetType;
+                expected.orbitType = "";
+            } else if (pre.orbitType === "Captured Body") {
+                post = new CapturedBody().import(pre);
+                post.orbitType = pre.orbitSubType;
+                post.orbitSubType = pre.orbitType;
                 expected.gotType = "CapturedBody";
                 expected.subType = "Captured Body";
-                expected.planetType = "";
+                expected.orbitType = "";
             } else {
                 post = pre;
             }
-            expect(post.planetType).toBe(expected.planetType);
-            expect(post.planetSubType).toBe(expected.subType);
+            expect(post.orbitType).toBe(expected.orbitType);
+            expect(post.orbitSubType).toBe(expected.subType);
             expect(post.getType()).toBe(expected.gotType);
             expect(post.meanSeparation).toBe(expected.meanSeparation);
             expect(post.orbitZone).toBe(expected.orbitZone);

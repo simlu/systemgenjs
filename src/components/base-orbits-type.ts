@@ -1,21 +1,31 @@
 export default class BaseOrbitsType<T> {
-
+    orbitType: string = "";
+    orbitSubType: string = "";
+    orbitZone: string = "";
+    orbits: BaseOrbitsType<any>[] = [];
+    
     //orbital information
-    public separation: string = "";
-    public orbitZone: string = "";
-    public orbitalEccentricity: number = 0;
-    public meanSeparation: number = 0;
-    public closestSeparation: number = 0;
-    public furthestSeparation: number = 0;
-    public orbitalPeriod: number = 0;
-    public orbits: BaseOrbitsType<any>[] = [];
+    separation: string = "";
+    orbitalEccentricity: number = 0;
+    meanSeparation: number = 0;
+    closestSeparation: number = 0;
+    furthestSeparation: number = 0;
+    orbitalPeriod: number = 0;
 
     getType(): string {
         return "";
     }
 
-    update(updated: Partial<T>): this {
-        Object.assign(this, updated);
+    import(updated: object): this {
+        let keys = Object.keys(this);
+        let self = this;
+        Object.entries(updated).forEach((entity) => {
+            let key = entity[0];
+            let value = entity[1];
+            if (keys.includes(key)) {
+                self[key] = value;
+            }
+        });
 
         return this;
     }

@@ -1,11 +1,9 @@
-import BaseOrbitsStar from "./base-orbits-star";
+import BaseOrbitsType from "./base-orbits-type";
 
-export default class BasePlanet<T> extends BaseOrbitsStar<T> {
-    description: string = "Planet";
-    planetType: string = "";
-    planetSubType: string = "";
+export default class BasePlanet<T> extends BaseOrbitsType<T> {
 
     solarDay: number = 0;
+    lunarYear: number = 0;
     planetTilt: number = 0;
     tidalForce: number = 0;
     tidalLock: number = 0;

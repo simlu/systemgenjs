@@ -1,7 +1,5 @@
-import BaseOrbitsPlanet from "./base-orbits-planet";
-import BaseOrbitsStar from "./base-orbits-star";
+import BaseOrbitsType from "./base-orbits-type";
 
-export default class BaseBelt<T> extends BaseOrbitsStar<T> {
+export default class BaseBelt<T> extends BaseOrbitsType<T> {
     description: string;
-    poi: BaseOrbitsPlanet<any>[];
 }
