@@ -12,15 +12,15 @@ import System from "../../components/system";
 import IGeneratorPart from "../../interfaces/generator-part";
 
 export default class StellaData implements IGeneratorPart {
-    roller: (rollFormat: string) => number;
+    rr: (min:number, max: number) => number;
 
-    setRoller(callback: (rollFormat: string) => number): StellaData {
-        this.roller = callback;
+    setRandomRange(callback: (min:number, max: number) => number): StellaData {
+        this.rr = callback;
         return this;
     }
 
     run(system: System): System {
-        let primaryStarMap: StarMap = this.initialStarGen(this.roller("d100"), this.roller("d10"));
+        let primaryStarMap: StarMap = this.initialStarGen(this.rr(1,100), this.rr(1,10));
         let qty: number = this.starQty(3);
         let maps: StarMap[] = this.extraStars(primaryStarMap, qty);
         maps = this.calculateLumMassTempRad(maps);
@@ -78,8 +78,8 @@ export default class StellaData implements IGeneratorPart {
             if (i === 0) {
                 stars.push(primary);
             } else {
-                let d10 = this.roller("d10");
-                let d10s = this.roller("d10");
+                let d10 = this.rr(1,10);
+                let d10s = this.rr(1,10);
                 if (d10s <= 2) {
                     let star = {...primary};
                     if (d10 > star.spectralRanking) {
@@ -87,7 +87,7 @@ export default class StellaData implements IGeneratorPart {
                     }
                     stars.push(star);
                 } else {
-                    let star = this.initialStarGen(this.roller("d100"), this.roller("d10"));
+                    let star = this.initialStarGen(this.rr(1,100), this.rr(1,10));
                     if (star.sizeClass === "VI" || star.sizeClass === "III" || primary.max < star.min) {
                         star = this.initialStarGen(87, d10);
                     }
@@ -101,11 +101,10 @@ export default class StellaData implements IGeneratorPart {
 
     starQty(max: number): number {
         let stars = 1;
-        let format = "d" + max;
-        let rl = this.roller(format);
+        let rl = this.rr(1, max);
         while (rl > 7 && stars <= 6) {
             stars++;
-            rl = this.roller("d10");
+            rl = this.rr(1,10);
         }
 
         return stars;
@@ -113,7 +112,7 @@ export default class StellaData implements IGeneratorPart {
 
     calculateLumMassTempRad(stars: StarMap[]): StarMap[] {
         let age = 0;
-        let roll = this.roller("d10") - 1;
+        let roll = this.rr(1,10) - 1;
         for (let i = 0; i < stars.length; i++) {
             stars[i] = this.setLumMassTempRad(stars[i]);
             if (i === 0 && stars[i].spectralClass !== "WD" && stars[i].spectralClass !== "BD" && stars[i].sizeClass !== "III" && stars[i].sizeClass !== "IV") {
@@ -135,9 +134,9 @@ export default class StellaData implements IGeneratorPart {
 
     recalculateGiantAndSubGiant(stars: StarMap[]): StarMap[] {
         let age = 0;
-        let d10 = this.roller("d10");
+        let d10 = this.rr(1,10);
         for (let i = 0; i < stars.length; i++) {
-            let mod = this.roller("d10");
+            let mod = this.rr(1,10);
             if (stars[i].sizeClass === "IV") {
                 switch (mod) {
                     case 3:
@@ -215,7 +214,7 @@ export default class StellaData implements IGeneratorPart {
     recalculateDwarfs(stars: StarMap[]): StarMap[] {
         let age = 0;
         for (let i = 0; i < stars.length; i++) {
-            let roll = this.roller("d10") - 1;
+            let roll = this.rr(1,10) - 1;
             let mod = 0;
             if (i === 0 && (stars[i].spectralClass === "WD" || stars[i].spectralClass === "BD")) {
                 let adj = this.findStarAge(stars[i], roll);
@@ -226,7 +225,7 @@ export default class StellaData implements IGeneratorPart {
                 stars[i].starAge = age;
             }
             let data;
-            roll = this.roller("d10") - 1 + mod;
+            roll = this.rr(1,10) - 1 + mod;
             roll = roll > 9 ? 9 : roll;
             roll = roll < 0 ? 0 : roll;
             if (stars[i].sizeClass === "VII") {
@@ -256,7 +255,7 @@ export default class StellaData implements IGeneratorPart {
     }
 
     findAbundance(mod: number): Abundance {
-        let roll = this.roller('2d10') + mod;
+        let roll = this.rr(2, 20) + mod;
         return [...abundances].find((value, index) => {
             return value.min <= roll && value.max >= roll;
         });

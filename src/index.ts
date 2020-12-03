@@ -1,16 +1,19 @@
-import pkg from 'dice-utils';
 import SystemGenerator from "./generator/system-generator";
 import MultipleStars from "./generator/part/multiple-stars";
 import PlanetaryOrbits from "./generator/part/planetary-orbits";
-const {roll} = pkg;
+import Srand from 'seeded-rand';
 
-const roller = (rollFormat:string) => {
-    return roll(rollFormat).total;
+const rnd = new Srand(); // Initiate with random seed
+
+console.log(rnd.seed()); // 1836504610 Read the seed
+
+const randomRangeGenerator = (min:number, max:number) => {
+    return rnd.intInRange(min, max);
 };
-let systemGenerator = new SystemGenerator(roller);
+let systemGenerator = new SystemGenerator(randomRangeGenerator);
 
-systemGenerator.addGeneratorPart((new MultipleStars()).setRoller(roller));
-systemGenerator.addGeneratorPart((new PlanetaryOrbits()).setRoller(roller));
+systemGenerator.addGeneratorPart((new MultipleStars()).setRandomRange(randomRangeGenerator));
+systemGenerator.addGeneratorPart((new PlanetaryOrbits()).setRandomRange(randomRangeGenerator));
 
 let result = systemGenerator.generate();
 console.log(JSON.stringify(result));

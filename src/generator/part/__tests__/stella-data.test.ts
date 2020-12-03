@@ -1,11 +1,10 @@
 import StellaData from "../stella-data";
-import pkg from 'dice-utils';
-const {roll} = pkg;
+import Srand from 'seeded-rand';
 
 test(
     'Check initial star gen', () => {
         let gen = new StellaData();
-        gen.setRoller((f) => {
+        gen.setRandomRange((f) => {
             throw "Should not be called in this test";
         });
         let gs = gen.initialStarGen(99, 8);
@@ -17,9 +16,10 @@ test(
 test(
     'Check star qty average', () => {
         let gen = new StellaData();
-        gen.setRoller((rollFormat:string) => {
-            return roll(rollFormat).total;
-        });
+        const rnd = new Srand(); // Initiate with random seed
+        const randomRangeGenerator = (min:number, max:number) => {
+            return rnd.intInRange(min, max);
+        };
         let count = 0;
         let sum = 0;
         for(let i=0; i < 1000; i++) {

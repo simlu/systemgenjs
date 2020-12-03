@@ -5,7 +5,7 @@ import {getPathsFromValue} from "../../system-gen-utils";
 import Star from "../../components/star";
 
 export default class MultipleStars implements IGeneratorPart {
-    roller: (rollFormat: string) => number;
+    rr: (min:number, max: number) => number;
 
     run(system: System): System {
         system = this.setOrbitPosition(system);
@@ -92,7 +92,7 @@ export default class MultipleStars implements IGeneratorPart {
         system = this.setDoubleOrbit(system, primaries);
         let sep = this.calcSep();
         let slot = 0;
-        let roll = this.roller("d10");
+        let roll = this.rr(1,10);
         primaries[2] = this.fillInSepValues(primaries[2], sep);
         if (system.orbits.length > 1) {
             if (sep < sepTypes.SEPARATED) {
@@ -118,14 +118,14 @@ export default class MultipleStars implements IGeneratorPart {
     setQuadrupleOrbit(system: System, primaries: Star[]): System {
         system = this.setTripleOrbit(system, primaries);
         let sep = this.calcSep();
-        let roll = this.roller("d10");
+        let roll = this.rr(1,10);
         let slot = (roll <= 4) ? 0 : (roll <= 7) ? 1 : 2;
         if (system.orbits.length === 3) {
-            sep = this.calcSep("d6");
+            sep = this.calcSep(1, 6);
             primaries[3] = this.fillInSepValues(primaries[3], sep);
             system.orbits[slot].orbits.push(primaries[3]);
         } else if (system.orbits.length === 2) {
-            sep = this.calcSep("d6");
+            sep = this.calcSep(1, 6);
             primaries[3] = this.fillInSepValues(primaries[3], sep);
             if (system.orbits[0].orbits.length > 0) {
                 system.orbits[1].orbits.push(primaries[3]);
@@ -133,7 +133,7 @@ export default class MultipleStars implements IGeneratorPart {
                 system.orbits[0].orbits.push(primaries[3]);
             }
         } else if (system.orbits.length === 1) {
-            sep = this.calcSep("d6");
+            sep = this.calcSep(1, 6);
             primaries[3] = this.fillInSepValues(primaries[3], sep);
             if (slot === 0) {
                 system.orbits[0].orbits.push(primaries[3]);
@@ -150,8 +150,8 @@ export default class MultipleStars implements IGeneratorPart {
         return system;
     }
 
-    calcSep(format = "d10") {
-        let roll = this.roller(format);
+    calcSep(min:number = 1, max:number=10) {
+        let roll = this.rr(min, max);
 
         let result = sepTypes.VERY_CLOSE;
         switch (roll) {
@@ -180,7 +180,7 @@ export default class MultipleStars implements IGeneratorPart {
 
     fillInSepValues(orbit: Star, sep): Star {
         let mod = orbit.starAge > 5 ? 1 : orbit.starAge <= 1 ? -1 : 0;
-        orbit.meanSeparation = this.roller('d10');
+        orbit.meanSeparation = this.rr(1, 10);
         orbit.meanSeparation = ((orbit.meanSeparation + mod) > 10 || (orbit.meanSeparation + mod) < 1) ? orbit.meanSeparation : orbit.meanSeparation + mod;
         mod = 0;
         switch (sep) {
@@ -204,7 +204,7 @@ export default class MultipleStars implements IGeneratorPart {
                 break;
             case 10:
                 orbit.separation = "Extreme";
-                orbit.meanSeparation = this.roller('d100');
+                orbit.meanSeparation = this.rr(1, 100);
                 orbit.meanSeparation *= 200;
                 break;
         }
@@ -215,9 +215,9 @@ export default class MultipleStars implements IGeneratorPart {
     }
 
     calculateEccentricity(mod: number) {
-        let d10A = this.roller("d10");
+        let d10A = this.rr(1,10);
         d10A = ((d10A + mod) < 1 || (d10A + mod) > 10) ? d10A : d10A + mod;
-        let d10B = this.roller("d10");
+        let d10B = this.rr(1,10);
         let ecc = 0;
         if (d10A <= 2) {
             ecc = 0.01 * d10B;
@@ -236,8 +236,8 @@ export default class MultipleStars implements IGeneratorPart {
         return ecc;
     }
 
-    setRoller(callback: (rollFormat: string) => number): MultipleStars {
-        this.roller = callback;
+    setRandomRange(callback: (min:number, max: number) => number): MultipleStars {
+        this.rr = callback;
         return this;
     }
 

@@ -1217,11 +1217,6 @@ detect-newline@^3.0.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-dice-utils@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/dice-utils/-/dice-utils-1.3.0.tgz#30f1d9be534d416105f08a0cf9049e4045c4f41a"
-  integrity sha512-pOyId7MB/4GIATiUk7KMa9c0lcRcyb4eeW+qGYOpAwLrODumNx8lobK+HGHmBABqnL2ndhaykcskI0R9AdLtWA==
-
 diff-sequences@^26.6.2:
   version "26.6.2"
   resolved "https://registry.yarnpkg.com/diff-sequences/-/diff-sequences-26.6.2.tgz#48ba99157de1923412eed41db6b6d4aa9ca7c0b1"
@@ -3040,6 +3035,11 @@ saxes@^5.0.0:
   integrity sha512-5LBh1Tls8c9xgGjw3QrMwETmTMVk0oFgvrFSvWx62llR2hcEInrKNZ2GZCCuuy2lvWrdl5jhbpeqc5hRYKFOcw==
   dependencies:
     xmlchars "^2.2.0"
+
+seeded-rand@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/seeded-rand/-/seeded-rand-2.0.1.tgz#5cd1867753a9b4f7054088f1b2577f245705a4fd"
+  integrity sha512-OoNSbS3HH7tFIcE3zsn9BkyfjV6Of4L8b0HZU69WiqOQsMTXBTe83MNnIxmgTx9ABmOoTBhPwst+SN96twgDvA==
 
 "semver@2 || 3 || 4 || 5", semver@^5.3.0, semver@^5.4.1, semver@^5.5.0:
   version "5.7.1"

@@ -19,7 +19,7 @@ import BasePlanet from "../../components/base-planet";
  * @todo planet with no type
  */
 export default class PlanetaryOrbits implements IGeneratorPart {
-    roller: (rollFormat: string) => number;
+    rr: (min:number, max: number) => number;
 
     run(system: System): System {
         let primary = system.orbits[0];
@@ -82,10 +82,10 @@ export default class PlanetaryOrbits implements IGeneratorPart {
             let planet: Planet = <Planet>orbitItem;
             if (["Chunk", "Terrestrial", "Gas Giant"].indexOf(planet.planetType) > -1) {
                 type = planet.planetType;
-                params = this.standardPlanetaryParams(type, primary, planet, this.roller("d10"), abundance.mod);
+                params = this.standardPlanetaryParams(type, primary, planet, this.rr(1,10), abundance.mod);
             } else if (planet.planetType === "Superjovian") {
                 type = planet.planetType;
-                params = this.standardJovianParams(type, primary, planet, this.roller("d10"), abundance.mod);
+                params = this.standardJovianParams(type, primary, planet, this.rr(1,10), abundance.mod);
             }
             orbitItem.map(params);
         }
@@ -98,15 +98,15 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         let captured = (planet.planetSubType === "Captured Body") ? true: false;
         let output = new PlanetParams();
         if (roll <= 4) {
-            output.mass = 500 + this.roller("d10") * 50;
+            output.mass = 500 + this.rr(1,10) * 50;
         } else if (roll <= 7) {
-            output.mass = 1000 + this.roller("d10") * 100;
+            output.mass = 1000 + this.rr(1,10) * 100;
         } else if (roll <= 9) {
-            output.mass = 2000 + this.roller("d10") * 100;
+            output.mass = 2000 + this.rr(1,10) * 100;
         } else {
-            output.mass = 3000 + this.roller("d10") * 100;
+            output.mass = 3000 + this.rr(1,10) * 100;
         }
-        output.radius = 60000 + (this.roller("d10") - (mod / 2)) * 2000;
+        output.radius = 60000 + (this.rr(1,10) - (mod / 2)) * 2000;
         output.density = (259694072000 * output.mass) / Math.pow(output.radius, 3);
         output.gravity = output.mass / Math.pow((output.radius / 6380), 2);
         output.escape = Math.pow((19600 * output.gravity * output.radius), 0.5) / 11200;
@@ -116,7 +116,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         }
         output.orbitalPeriod = Math.pow((Math.pow(planet.meanSeparation,3) / yearMass), 0.5);
         output.tidalForce = (primary.mass * 26640000) / Math.pow((planet.meanSeparation * 400),3);
-        let d = this.roller("d10");
+        let d = this.rr(1,10);
         output.tidalLock = (0.83 + (d * 0.03)) * output.tidalForce * (primary.starAge/6.6);
         output.orbitalEccentricity = this.getObitalEccentricity(captured);
         output.closestSeparation = planet.meanSeparation * ( 1 - output.orbitalEccentricity );
@@ -136,8 +136,8 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         roll = (zone === "Life Zone") ? roll + 1 : roll;
         roll = trojan ? roll + 2 : roll;
         roll = (roll < 1) ? 1 : (roll > 10) ? 10 : roll;
-        output.radius = planetaryRadius[type](roll, this.roller("d10"));
-        output.density = planetaryDensity[zone][type](this.roller("d10"));
+        output.radius = planetaryRadius[type](roll, this.rr(1,10));
+        output.density = planetaryDensity[zone][type](this.rr(1,10));
         output.mass = Math.pow((output.radius / 6380), 3) * output.density;
         output.gravity = output.mass / Math.pow((output.radius / 6380), 2);
         output.escape = Math.pow((19600 * output.gravity * output.radius), 0.5) / 11200;
@@ -147,7 +147,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         }
         output.orbitalPeriod = Math.pow((Math.pow(planet.meanSeparation,3) / yearMass), 0.5);
         output.tidalForce = (primary.mass * 26640000) / Math.pow((planet.meanSeparation * 400),3);
-        let d = this.roller("d10");
+        let d = this.rr(1,10);
         output.tidalLock = (0.83 + (d * 0.03)) * output.tidalForce * (primary.starAge/6.6);
         output.orbitalEccentricity = this.getObitalEccentricity(captured);
         output.closestSeparation = planet.meanSeparation * ( 1 - output.orbitalEccentricity );
@@ -161,39 +161,39 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         let output: number = -1;
         if ( params.tidalLock < 1) {
             output = 0;
-            let roll = this.roller("d10");
+            let roll = this.rr(1,10);
             roll += Math.floor((params.tidalForce * starAge));
             switch (true) {
                 case (roll <= 5):
                     if (planet.planetType === "Chunk") {
-                        output = (this.roller("d10") * 2);
+                        output = (this.rr(1,10) * 2);
                     } else if (planet.planetType !== "Gas Giant" && planet.planetType !== "Superjovian") {
-                        output = 10 + (this.roller("d10") * 2);
+                        output = 10 + (this.rr(1,10) * 2);
                     } else {
-                        output = 6 + (this.roller("d10") / 2);
+                        output = 6 + (this.rr(1,10) / 2);
                     }
                     break;
                 case (roll <= 7):
                     if (planet.planetType === "Chunk") {
-                        output = this.roller("d10") * 24;
+                        output = this.rr(1,10) * 24;
                     } else if (planet.planetType !== "Gas Giant" && planet.planetType !== "Superjovian") {
-                        output = 30 + this.roller("d100");
+                        output = 30 + this.rr(1,100);
                     } else {
-                        output = 11 + (this.roller("d10") / 2);
+                        output = 11 + (this.rr(1,10) / 2);
                     }
                     break;
                 case (roll <= 9):
                     if (planet.planetType === "Chunk") {
-                        output = this.roller("d100") * 24;
+                        output = this.rr(1,100) * 24;
                     } else if (planet.planetType !== "Gas Giant" && planet.planetType !== "Superjovian") {
-                        output = this.roller("d100") * 2 * 24;
+                        output = this.rr(1,100) * 2 * 24;
                     } else {
-                        output = 16 + this.roller("d10");
+                        output = 16 + this.rr(1,10);
                     }
                     break;
                 case (roll >= 10):
                     if (planet.planetType === "Gas Giant" || planet.planetType === "Superjovian") {
-                        output = (26 + this.roller("d10")) * 24;
+                        output = (26 + this.rr(1,10)) * 24;
                     } else {
                         output = -1;
                     }
@@ -209,7 +209,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
                 }
             } else {
                 if (params.tidalLock < 1) {
-                    output = (100 + this.roller("D1000")) * 24;
+                    output = (100 + this.rr(1, 1000)) * 24;
                 }
             }
         }
@@ -218,23 +218,23 @@ export default class PlanetaryOrbits implements IGeneratorPart {
     }
 
     getAxialTilt(): number {
-        let roll = this.roller("d10");
+        let roll = this.rr(1,10);
         let output = 0;
         switch(true) {
             case (roll <= 2):
-                output = this.roller("d10");
+                output = this.rr(1,10);
                 break;
             case (roll <= 4):
-                output = 10 + this.roller("d10");
+                output = 10 + this.rr(1,10);
                 break;
             case (roll <= 6):
-                output = 20 + this.roller("d10");
+                output = 20 + this.rr(1,10);
                 break;
             case (roll <= 8):
-                output = 30 + this.roller("d10");
+                output = 30 + this.rr(1,10);
                 break;
             case (roll >= 9):
-                output = 40 + (this.roller("d100") * 1.4);
+                output = 40 + (this.rr(1,100) * 1.4);
                 break;
         }
 
@@ -242,21 +242,21 @@ export default class PlanetaryOrbits implements IGeneratorPart {
     }
 
     getObitalEccentricity(captured:boolean): number {
-        let roll = this.roller("d10");
+        let roll = this.rr(1,10);
         roll += (captured) ? 3 : 0;
         let output = 0;
         switch(true) {
             case (roll <= 5):
-                output = 0.005 * this.roller("d10");
+                output = 0.005 * this.rr(1,10);
                 break;
             case (roll <= 7):
-                output = 0.05 + (0.01 * this.roller("d10"));
+                output = 0.05 + (0.01 * this.rr(1,10));
                 break;
             case (roll <= 9):
-                output = 0.15 + (0.01 * this.roller("d10"));
+                output = 0.15 + (0.01 * this.rr(1,10));
                 break;
             case (roll >= 10):
-                output = 0.25 + (0.04 * this.roller("d10"));
+                output = 0.25 + (0.04 * this.rr(1,10));
                 break;
         }
 
@@ -264,7 +264,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
     }
 
     calculateType(planet: Planet): BaseOrbitsType<any>|null {
-        let roll = this.roller("d100");
+        let roll = this.rr(1,100);
         let target = planet.orbitZone;
         if (planet.planetType !== "") {
             target = planet.planetType;
@@ -278,7 +278,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         if (planetaryType.reRoll) {
             while (planetaryType.reRoll) {
                 target = planetaryType.planetType;
-                roll = this.roller("d100");
+                roll = this.rr(1,100);
                 planetaryType = planetaryTypes[target].find((val) => {
                     return (val.min <= roll && val.max >= roll);
                 });
@@ -359,7 +359,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
 
     generateBasicOrbits(star: Star, abundance: Abundance): { distance: number, type: string }[] {
         // work out modifier based on star type
-        let mod = this.roller("d10");
+        let mod = this.rr(1,10);
         if (star.spectralClass === "K" && star.sizeClass === "V" && star.spectralRanking >= 5 && star.spectralRanking <= 9) {
             mod += 1;
         } else if (star.spectralClass === "M" && star.sizeClass === "V" && star.spectralRanking >= 0 && star.spectralRanking <= 4) {
@@ -377,16 +377,16 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         let planets = 0;
         switch (true) {
             case (mod <= 1):
-                planets = this.roller("d10") + 10;
+                planets = this.rr(1,10) + 10;
                 break;
             case (mod >= 2 && mod <= 5):
-                planets = this.roller("d10") + 5;
+                planets = this.rr(1,10) + 5;
                 break;
             case (mod >= 6 && mod <= 7):
-                planets = this.roller("d10");
+                planets = this.rr(1,10);
                 break;
             case (mod >= 8 && mod <= 9):
-                planets = this.roller("d5");
+                planets = this.rr(1, 5);
                 break;
             default:
                 planets = 0;
@@ -395,9 +395,9 @@ export default class PlanetaryOrbits implements IGeneratorPart {
 
         //generate distance, class and type basics
         let planetArray = [];
-        let tot = 0.05 * Math.pow(star.mass, 2) * this.roller("d10");
+        let tot = 0.05 * Math.pow(star.mass, 2) * this.rr(1,10);
         for (let j = 0; j < planets; j++) {
-            tot *= 1.1 + (this.roller("d10") * 0.1);
+            tot *= 1.1 + (this.rr(1,10) * 0.1);
             tot += 0.1;
             planetArray.push({distance: tot, type: ""});
         }
@@ -406,7 +406,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         let limit = 0;
         // Remove orbits due to white dwarf
         if (star.spectralClass === "WD") {
-            let roll = this.roller('d10');
+            let roll = this.rr(1, 10);
             if (star.mass >= 0.6 && star.mass <= 0.9) {
                 roll += 2;
             } else if (star.mass > 0.9) {
@@ -459,20 +459,20 @@ export default class PlanetaryOrbits implements IGeneratorPart {
 
         // if all orbits are removed its likely they have rubbish left behind.
         if (planetArray.length === 0 && !ignoreZeroLength) {
-            let mess = this.roller("d5");
+            let mess = this.rr(1, 5);
             for (let k = 0; k < mess; k++) {
-                let type = this.roller("d10");
+                let type = this.rr(1,10);
                 switch (true) {
                     case (type <= 3):
-                        tot = this.roller("d10") * this.roller("d10");
+                        tot = this.rr(1,10) * this.rr(1,10);
                         planetArray.push({distance: tot, type: "Chunk"});
                         break;
                     case (type === 4):
-                        tot = this.roller("d10");
+                        tot = this.rr(1,10);
                         planetArray.push({distance: tot, type: "Captured Body"});
                         break;
                     case (type <= 7):
-                        tot = this.roller("d10");
+                        tot = this.rr(1,10);
                         planetArray.push({distance: tot, type: "Ring"});
                         break;
                 }
@@ -483,8 +483,8 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         return planetArray;
     }
 
-    setRoller(callback: (rollFormat: string) => number): IGeneratorPart {
-        this.roller = callback;
+    setRandomRange(callback: (min:number, max: number) => number): IGeneratorPart {
+        this.rr = callback;
         return this;
     }
 

@@ -3,10 +3,10 @@ import StellaData from "./part/stella-data";
 import System from "../components/system";
 
 export default class SystemGenerator {
-    roller: (rollFormat: string) => number;
+    randomRange: (min:number, max: number) => number;
     parts: IGeneratorPart[] = [];
-    constructor(callback: (rollFormat: string) => number) {
-        this.roller = callback;
+    constructor(callback: (min:number, max: number) => number) {
+        this.randomRange = callback;
         this.addGeneratorPart(new StellaData());
     }
     generate() {
@@ -17,7 +17,7 @@ export default class SystemGenerator {
         return system;
     }
     addGeneratorPart(part:IGeneratorPart):void {
-        part.setRoller(this.roller);
+        part.setRandomRange(this.randomRange);
         this.parts.push(part);
     }
 }
