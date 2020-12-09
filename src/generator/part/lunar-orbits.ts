@@ -52,7 +52,26 @@ export default class LunarOrbits implements IGeneratorPart {
             let moons = this.calculateMoonCount(planet);
             for(let mi=0; mi<moons; mi++) {
                 let moon = this.calculateMoonOrbits(new Planet().import({ orbitType: "Moon" }));
-                let params = this.calculateMoonParams(system.abundance, 0, moon.meanSeparation);
+                let radiusRoll = this.rr(1, 100);
+                if (moon.orbitType === "Inclined") {
+                    radiusRoll = this.rr(1, 80);
+                }
+                moon = this.calculateMoonParams(moon, planet, system.abundance, radiusRoll, this.rr(1, 10));
+                if (moon.meanSeparation < moon.roche && (moon.orbitType === "Chunk" || moon.orbitType === "Terrestrial"))
+                {
+                    let ring = new Ring();
+                    ring.orbitZone = moon.orbitZone;
+                    ring.separation = moon.separation;
+                    ring.orbitalEccentricity = moon.orbitalEccentricity;
+                    ring.meanSeparation = moon.meanSeparation;
+                    ring.closestSeparation = moon.closestSeparation;
+                    ring.furthestSeparation = moon.furthestSeparation;
+                    ring.orbitalPeriod = moon.orbitalPeriod;
+                    ring.roche = moon.roche;
+                    ring.orbits.push(moon);
+                    moon = ring;
+                }
+                planet.orbits.push(moon);
                 /**
                  * SPECIAL ORBITS: The moon (not applicable to rings) has a odd orbit. Some such cases could be (roll 1D10):
                  1: Retrograde: The moon orbits the wrong way. This isn't too uncommon. Reroll to decide orbital distance, but ignore Close and Special distances. These moons often have distinct eccentricity and inclination too, and are often small. Roll twice for size and select the lower roll.
@@ -62,7 +81,6 @@ export default class LunarOrbits implements IGeneratorPart {
                  be at least on size class larger than the two Trojans. If no moon is generated before this one, reroll. Trojans are not in Very Distant orbits.
                  7: Shared Orbit: The moon is actually two moons, of Tiny Chunk size, which shares almost the same orbit. Unlike Trojans, these moons "catch up" with each other and exchange orbits regularly. Shared orbits are Close.
                  8-9: Eccentric. The moon has a very eccentric orbit. It is not in Close orbit. These satellites are generally small - roll twice and select the lower result.
-                 10: Inclined. The moon has a very inclined orbit compared to the planet's rotational plane. Extreme inclination includes polar orbits. As with Eccentric moons, the satellites are usually small.
                  */
             }
         }
@@ -70,43 +88,40 @@ export default class LunarOrbits implements IGeneratorPart {
         return planet;
     }
 
-    calculateMoonParams(abundance:Abundance, zoneEquiv:number, separation:number): PlanetParams {
-
+    calculateMoonParams(moon: BaseOrbitsType<any>, planet:BasePlanet<any>, abundance:Abundance, radiusRoll:number, densityRoll:number): BaseOrbitsType<any> {
+        let zoneEquiv:number = (planet.orbitZone === "Outer Zone") ? 1 : 0;
         let params:PlanetParams = new PlanetParams();
-        params.radius = this.calculateRadius(abundance);
-        params.density = (zoneEquiv === 0) ? 0.3 + (this.rr(1, 10) * 0.1) : 0.1 + (this.rr(1, 10) * 0.05);
-        params.mass =  Math.pow((params.radius / 6380),3) * params.density;
-        params.gravity = params.mass / Math.pow((params.radius / 6380),2);
-        params.lunarYear = Math.pow((separation / 400000), 3) * Math.pow((793.64 / params.mass), 0.5);
-
-
-        return params;
-    }
-    
-    calculateRadius(abundance:Abundance): number {
-        let roll = this.rr(1, 100);
-        roll += (abundance.mod < 0) ? (abundance.mod * 2) : abundance.mod;
-
-        let radius;
+        radiusRoll += (abundance.mod < 0) ? (abundance.mod * 2) : abundance.mod;
         switch(true) {
-            case (roll<=64):
-                radius = this.rr(1, 10) * 10;
+            case (radiusRoll <= 64):
+                moon.orbitType = (moon.orbitType === "Moon") ? "Chunk" : moon.orbitType;
+                params.radius = this.rr(1, 10) * 10;
                 break;
-            case (roll<=84):
-                radius = this.rr(1, 10) * 100;
+            case (radiusRoll <= 84):
+                moon.orbitType = (moon.orbitType === "Moon") ? "Chunk" : moon.orbitType;
+                params.radius = this.rr(1, 10) * 100;
                 break;
-            case (roll<=94):
-                radius = 1000 + (this.rr(1, 10) * 100);
+            case (radiusRoll <= 94):
+                moon.orbitType = (moon.orbitType === "Moon") ? "Chunk" : moon.orbitType;
+                params.radius = 1000 + (this.rr(1, 10) * 100);
                 break;
-            case (roll <= 99):
-                radius = 2000 + (this.rr(1, 10) * 200);
+            case (radiusRoll <= 99):
+                moon.orbitType = (moon.orbitType === "Moon") ? "Terrestrial" : moon.orbitType;
+                params.radius = 2000 + (this.rr(1, 10) * 200);
                 break;
             default:
-                radius = 4000 + (this.rr(1, 10) * 400);
+                moon.orbitType = (moon.orbitType === "Moon") ? "Terrestrial" : moon.orbitType;
+                params.radius = 4000 + (this.rr(1, 10) * 400);
                 break;
         }
+        params.density = (zoneEquiv === 0) ? 0.3 + (densityRoll * 0.1) : 0.1 + (densityRoll * 0.05);
+        params.mass =  Math.pow((params.radius / 6380),3) * params.density;
+        params.gravity = params.mass / Math.pow((params.radius / 6380),2);
+        params.lunarYear = Math.pow((moon.meanSeparation / 400000), 3) * Math.pow((793.64 / params.mass), 0.5);
+        params.roche = 2.456 * Math.pow((planet.density / params.density), 0.33);
 
-        return radius;
+        moon.import(params);
+        return moon;
     }
 
     calculateMoonOrbits(moon: BaseOrbitsType<any>, reRollSpecial:boolean = false): BaseOrbitsType<any>  {
@@ -144,7 +159,7 @@ export default class LunarOrbits implements IGeneratorPart {
         let roll = this.rr(1, 10);
         switch(true) {
             case (roll===1):
-                moon.orbitType = "Retrograde"
+                moon.orbitType = "Retrograde";
                 moon.orbitZone = "Close";
                 while (moon.orbitZone === "Close") {
                     moon = this.calculateMoonOrbits(moon, true);
@@ -152,26 +167,28 @@ export default class LunarOrbits implements IGeneratorPart {
                 break;
             case (roll<=4):
                 moon = new Ring();
+                moon.orbitType = "Ring";
                 moon = this.calculateMoonOrbits(moon, true);
                 break;
             case (roll<=6):
                 moon = new Trojan();
+                moon.orbitType = "Trojan";
                 moon = this.calculateMoonOrbits(moon, true);
                 break;
             case (roll === 7):
-                moon.orbitType = "Shared"
+                moon.orbitType = "Shared";
                 moon.orbitZone = "Close";
                 moon.meanSeparation = this.rr(2, 6);
                 break;
             case (roll <= 9):
-                moon.orbitType = "Shared"
+                moon.orbitType = "Eccentric";
                 moon.orbitZone = "Close";
                 while (moon.orbitZone === "Close") {
                     moon = this.calculateMoonOrbits(moon, true);
                 }
                 break;
             default:
-                moon.orbitType = "Inclined"
+                moon.orbitType = "Inclined";
                 moon = this.calculateMoonOrbits(moon, true);
                 break;
         }

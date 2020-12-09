@@ -11,6 +11,7 @@ export default class BaseOrbitsType<T> {
     closestSeparation: number = 0;
     furthestSeparation: number = 0;
     orbitalPeriod: number = 0;
+    roche: number = 0;
 
     getType(): string {
         return "";

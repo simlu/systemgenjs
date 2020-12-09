@@ -145,4 +145,5 @@ export class PlanetParams {
     density: number = 0;
     gravity: number = 0;
     escape: number = 0;
+    roche: number = 0;
 }
