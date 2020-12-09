@@ -68,7 +68,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
                 }
             }
             if (push !== null) {
-                newOrbits[i] = push;
+                newOrbits.push(push);
             }
         }
 
@@ -95,8 +95,12 @@ export default class PlanetaryOrbits implements IGeneratorPart {
             params = this.finishParams(params, primary, planet)
             orbitItem.import(params);
             if (["DoublePlanet", "Trojan"].indexOf(orbitItem.getType()) > -1) {
+                let typeRoll = this.rr(1, 100);
                 if (orbitItem.getType() === "DoublePlanet") {
-                    let doubleType = planetaryTypes["Double Planet"][this.rr(1, 100)];
+                    let doubleType = planetaryTypes["Double Planet"].find((val) => {
+                        return (val.min <= typeRoll && val.max >= typeRoll);
+                    });
+
                     let double = (new Planet()).import(orbitItem);
                     double.orbitType = doubleType.orbitType;
                     double.orbitSubType = "";
@@ -116,7 +120,10 @@ export default class PlanetaryOrbits implements IGeneratorPart {
                     double.import(params);
                     orbitItem.orbits.push(double);
                 } else {
-                    let trojanType = planetaryTypes["Trojan Moon"][this.rr(1, 100)];
+                    let trojanType = planetaryTypes["Trojan Moon"].find((val) => {
+                        return (val.min <= typeRoll && val.max >= typeRoll);
+                    });
+
                     let trojanMoon = (new Planet()).import(orbitItem);
                     trojanMoon.orbitType = trojanType.orbitType;
                     trojanMoon.orbitSubType = "";
