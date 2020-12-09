@@ -103,7 +103,7 @@ export const starMaps: StarMap[] = [
         rad: 0
     }),
     new StarMap({
-        min: 86,
+        min: 87,
         max: 98,
         starAge: 0,
         spectralClass: "BD",
@@ -281,11 +281,11 @@ export class Abundance {
 }
 
 export const abundances = [
-    new Abundance({min: 3, max: 9, desc: "Exceptional", mod: 2}),
-    new Abundance({min: 10, max: 12, desc: "High", mod: 1}),
-    new Abundance({min: 13, max: 18, desc: "Normal", mod: 0}),
-    new Abundance({min: 19, max: 21, desc: "Poor", mod: -1}),
-    new Abundance({min: 22, max: 200, desc: "Depleted", mod: -3})
+    new Abundance({min: 0, max: 9, desc: "Exceptional", mod: 2}),
+    new Abundance({min: 9, max: 12, desc: "High", mod: 1}),
+    new Abundance({min: 12, max: 18, desc: "Normal", mod: 0}),
+    new Abundance({min: 18, max: 21, desc: "Poor", mod: -1}),
+    new Abundance({min: 21, max: 200, desc: "Depleted", mod: -3})
 ]
 
 export const whiteDwarf = [
