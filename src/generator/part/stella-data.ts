@@ -253,7 +253,7 @@ export default class StellaData implements IGeneratorPart {
     findAbundance(mod: number): Abundance {
         let roll = this.rr(2, 20) + mod;
         return [...abundances].find((value) => {
-            return value.min <= roll && value.max >= roll;
+            return value.min < roll && value.max >= roll;
         });
     }
 
