@@ -3,10 +3,11 @@ import MultipleStars from "./generator/part/multiple-stars";
 import PlanetaryOrbits from "./generator/part/planetary-orbits";
 import Srand from 'seeded-rand';
 import LunarOrbits from "./generator/part/lunar-orbits";
+import safeStringify from "fast-safe-stringify";
 
 const rnd = new Srand(); // Initiate with random seed
 
-console.log(rnd.seed()); // 1836504610 Read the seed
+console.log(rnd.seed()); // 2309010750 Read the seed
 
 const randomRangeGenerator = (min: number, max: number) => {
     return rnd.intInRange(min, max);
@@ -18,4 +19,5 @@ systemGenerator.addGeneratorPart((new PlanetaryOrbits()).setRandomRange(randomRa
 systemGenerator.addGeneratorPart((new LunarOrbits()).setRandomRange(randomRangeGenerator));
 
 let result = systemGenerator.generate();
-console.log(JSON.stringify(result));
+let json = safeStringify(result);
+console.log(json);
