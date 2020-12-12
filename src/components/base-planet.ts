@@ -13,6 +13,11 @@ export default class BasePlanet<T> extends BaseOrbitsType<T> {
     density: number = 0;
     gravity: number = 0;
     escape: number = 0;
+    coreSize: string = "";
+    coreComposition: string = "";
+    mantleComposition: string = "";
+    crustComposition: string = "";
+    teutonicActivity: string = "";
 
     getType(): string {
         return "Planet";

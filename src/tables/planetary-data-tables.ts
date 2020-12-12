@@ -149,3 +149,23 @@ export class PlanetParams {
     escape: number = 0;
     roche: number = 0;
 }
+
+export class TectonicActivity {
+    constructor(min:number, max:number, activities:string[]) {
+        this.min = min;
+        this.max = max;
+        this.activities = activities;
+    }
+    min: number = 0;
+    max: number = 0;
+    activities: string[] = [];
+}
+
+export const tectonicActivities = [
+    new TectonicActivity(0, 0.5, ["Dead","Dead","Dead","Dead","Dead","Dead","Dead","Dead","Dead","Dead"]),
+    new TectonicActivity(0.5, 1.0, ["Dead","Dead","Dead","Dead","Dead","Dead","Dead","Hot Spot","Hot Spot","Plastic"]),
+    new TectonicActivity(1.0, 2.0, ["Dead","Hot Spot","Hot Spot","Hot Spot","Hot Spot","Plastic","Plastic","Plastic","Plastic","Plate Tectonic"]),
+    new TectonicActivity(2.0, 3.0, ["Hot Spot","Hot Spot","Plastic","Plastic","Plastic","Plastic","Plate Tectonic","Plate Tectonic","Plate Tectonic","Plate Tectonic"]),
+    new TectonicActivity(3.0, 5.0, ["Hot Spot","Plastic","Plastic","Plate Tectonic","Plate Tectonic","Plate Tectonic","Plate Tectonic","Plate Tectonic","PlateletTectonic","PlateletTectonic"]),
+    new TectonicActivity(5.0, 100, ["Plastic","Plate Tectonic","PlateletTectonic","PlateletTectonic","PlateletTectonic","PlateletTectonic","PlateletTectonic","Extreme","Extreme","Extreme"]),
+];
