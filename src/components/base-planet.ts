@@ -2,8 +2,9 @@ import BaseOrbitsType from "./base-orbits-type";
 
 export default class BasePlanet<T> extends BaseOrbitsType<T> {
 
+    rotationalPeriod: number = 0;
     solarDay: number = 0;
-    lunarYear: number = 0;
+    solarYear: number = 0;
     planetTilt: number = 0;
     tidalForce: number = 0;
     tidalLock: number = 0;

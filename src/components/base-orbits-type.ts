@@ -2,6 +2,7 @@ export default class BaseOrbitsType<T> {
     orbitType: string = "";
     orbitSubType: string = "";
     orbitZone: string = "";
+    orbitalPeriod: number = 0;
     orbits: BaseOrbitsType<any>[] = [];
     
     //orbital information
@@ -10,7 +11,6 @@ export default class BaseOrbitsType<T> {
     meanSeparation: number = 0;
     closestSeparation: number = 0;
     furthestSeparation: number = 0;
-    orbitalPeriod: number = 0;
     roche: number = 0;
 
     getType(): string {
