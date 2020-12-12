@@ -26,6 +26,7 @@ export default class LunarOrbits extends PlanetPartial implements IGeneratorPart
 
         } else if (planet.tidalLock <= 1) {
             let moons = this.calculateMoonCount(planet);
+            let planetOrbits = [];
             for(let mi=0; mi<moons; mi++) {
                 let moon = this.calculateMoonOrbits(new Planet().import({ orbitType: "Moon" }));
                 let radiusRoll = this.rr(1, 100);
@@ -47,7 +48,7 @@ export default class LunarOrbits extends PlanetPartial implements IGeneratorPart
                     ring.orbits.push(moon);
                     moon = ring;
                 }
-                planet.orbits.push(moon);
+                planetOrbits.push(moon);
                 /**
                  * SPECIAL ORBITS: The moon (not applicable to rings) has a odd orbit. Some such cases could be (roll 1D10):
                  1: Retrograde: The moon orbits the wrong way. This isn't too uncommon. Reroll to decide orbital distance, but ignore Close and Special distances. These moons often have distinct eccentricity and inclination too, and are often small. Roll twice for size and select the lower roll.
@@ -59,6 +60,10 @@ export default class LunarOrbits extends PlanetPartial implements IGeneratorPart
                  8-9: Eccentric. The moon has a very eccentric orbit. It is not in Close orbit. These satellites are generally small - roll twice and select the lower result.
                  */
             }
+            planetOrbits = planetOrbits.sort((a, b) => (a.meanSeparation > b.meanSeparation) ? 1 : -1);
+            planetOrbits.forEach((moon) => {
+                planet.orbits.push(moon);
+            });
         }
 
         return planet;
@@ -94,6 +99,8 @@ export default class LunarOrbits extends PlanetPartial implements IGeneratorPart
         params.mass =  Math.pow((params.radius / 6380),3) * params.density;
         params.gravity = params.mass / Math.pow((params.radius / 6380),2);
         params.lunarYear = Math.pow((moon.meanSeparation / 400000), 3) * Math.pow((793.64 / params.mass), 0.5);
+        params.solarYear = planet.solarYear;
+        params.solarDay = planet.solarDay;
         params.roche = 2.456 * Math.pow((planet.density / params.density), 0.33);
 
         moon.import(params);
@@ -180,10 +187,10 @@ export default class LunarOrbits extends PlanetPartial implements IGeneratorPart
             moons += (roll >= 10) ? 1 : 0;
         } else if (planet.orbitType === "Gas Giant" || planet.orbitType === "Superjovian") {
             moons += (roll >= 1 && roll <= 5) ? this.rr(1, 5) : 0;
-            moons += (roll >= 1 && roll <= 5) ? this.rr(1, 10) : 0;
-            moons += (roll >= 1 && roll <= 5) ? 5 + this.rr(1, 10) : 0;
-            moons += (roll >= 1 && roll <= 5) ? 10 + this.rr(1, 10) : 0;
-            moons += (roll >= 1 && roll <= 5) ? 20 + this.rr(1, 10) : 0;
+            moons += (roll >= 6 && roll <= 7) ? this.rr(1, 10) : 0;
+            moons += (roll >= 8 && roll <= 9) ? 5 + this.rr(1, 10) : 0;
+            moons += (roll >= 10 && roll <= 13) ? 10 + this.rr(1, 10) : 0;
+            moons += (roll >= 14) ? 20 + this.rr(1, 10) : 0;
         } else {
             moons += (roll >= 6 && roll <= 7) ? 1 : 0;
             moons += (roll >= 8 && roll <= 9) ? this.rr(1, 2) : 0;

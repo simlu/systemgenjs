@@ -20,10 +20,6 @@ import Interloper from "../../components/interloper";
 import CapturedBody from "../../components/captured-body";
 import BasePlanet from "../../components/base-planet";
 
-/**
- * @todo removing null orbits not working
- * @todo planet with no type
- */
 export default class PlanetaryOrbits implements IGeneratorPart {
     rr: (min: number, max: number) => number;
 
@@ -143,7 +139,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         return orbitItem
     }
 
-    calculateStandardParams(primary: Star, planet: BasePlanet<any> , rolls: number[], mod:number) {
+    calculateStandardParams(primary: Star, planet: BasePlanet<any> , rolls: number[], mod:number): PlanetParams {
         let params;
         let type;
         if (["Chunk", "Terrestrial", "Gas Giant"].indexOf(planet.orbitType) > -1) {
@@ -165,7 +161,34 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         params.closestSeparation = planet.meanSeparation * (1 - params.orbitalEccentricity);
         params.furthestSeparation = planet.meanSeparation * (1 + params.orbitalEccentricity);
         params.planetTilt = this.getAxialTilt();
-        params.solarDay = this.calculateSolarDay(params, planet, primary.starAge);
+        params.rotationalPeriod = this.calculateRotationalPeriod(params, planet, primary.starAge) / 24;//earth days
+        let ratioDay = 1;
+        let ratioYear = 1;
+        params.solarYear = params.orbitalPeriod * 365;// solar years in earth days
+        if (params.tidalLock > 1 && params.orbitalEccentricity >= 0 && params.orbitalEccentricity <= 0.87) {
+            if (params.orbitalEccentricity === 0) {
+                ratioDay = 1;
+                ratioYear = 1;
+            } else if (params.orbitalEccentricity <= 0.21) {
+                ratioDay = 3;
+                ratioYear = 2;
+            } else if (params.orbitalEccentricity <= 0.39) {
+                ratioDay = 2;
+                ratioYear = 1;
+            } else if (params.orbitalEccentricity <= 0.57) {
+                ratioDay = 5;
+                ratioYear = 2;
+            } else if (params.orbitalEccentricity <= 0.72) {
+                ratioDay = 3;
+                ratioYear = 1;
+            } else if (params.orbitalEccentricity <= 0.87) {
+                ratioDay = 7;
+                ratioYear = 2;
+            }
+            params.solarDay = params.solarYear * (ratioYear / ratioDay);
+        } else {
+            params.solarDay = 1 / (( 1 / params.rotationalPeriod ) - ( 1 / params.solarYear ));
+        }
         return params;
     }
 
@@ -219,8 +242,8 @@ export default class PlanetaryOrbits implements IGeneratorPart {
         return output;
     }
 
-    calculateSolarDay(params: PlanetParams, planet: BasePlanet<any>, starAge: number): number {
-        let output: number = -1;
+    calculateRotationalPeriod(params: PlanetParams, planet: BasePlanet<any>, starAge: number): number {
+        let output: number = 0;
         if (params.tidalLock < 1) {
             output = 0;
             let roll = this.rr(1, 10);
@@ -267,6 +290,7 @@ export default class PlanetaryOrbits implements IGeneratorPart {
                 } else {
                     let mod = (planet.mass >= 4) ? -2 : 0;
                     mod += (planet.orbitType === "Gas Giant" && planet.mass <= 50) ? 2 : 0;
+                    mod = (mod < 0) ? 0 : mod;
                     output = output * (1 + (mod * 0.1));
                 }
             } else {
