@@ -54,16 +54,13 @@ export const getValueFromPath = (obj, path, def) => {
 
 };
 
-export function getPathsFromValue(data, filter: string, remove: string): string[] {
-    const findKeys = (haystack) => objectScan([filter], { rtn: 'key' })(haystack);
-    let result = findKeys(data);
-    let paths = [];
-    let removal = new RegExp("," + remove, "g");
-    result.forEach((val) => {
-        let path = val.toString().replace(removal, '').replace(/,/g, '.').replace(/\.$/, '');
-        paths.push(path);
-    });
+export function getParentPathsFromValue(data, filter: string, remove: string): string[] {
+    const findPaths = (haystack) => objectScan([filter], {
+      filterFn: ({ key, context }) => {
+          context.add(key.filter((s) => s !== remove).join('.'));
+      }
+    })(haystack, new Set());
+    const paths = [...findPaths(data)];
     paths.sort();
-
     return paths;
 }
